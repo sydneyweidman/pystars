@@ -39,7 +39,7 @@ class TestPlayer(unittest.TestCase):
 
     def test_add_token(self):
         self.players[BLUE].add_token(self.token)
-        self.assertEqual(self.players[BLUE].tokens.get_sprite(0).color, BLUE)
+        self.assertEqual(self.players[BLUE].tokens[0].color, BLUE)
         self.assertEqual(len(self.players[BLUE].tokens), 1)
 
 class TestGame(unittest.TestCase):
@@ -47,8 +47,41 @@ class TestGame(unittest.TestCase):
     def setUp(self):
         self.game = Game()
 
+    def _get_slot_by_name(self, name):
+        retval = None
+        for s in self.game.slots:
+            try:
+                if s.name == name:
+                    retval = s
+            except KeyError:
+                retval = None
+        return retval
+
     def test_game_running(self):
         assert self.game.running
+
+    def test_no_winner(self):
+        self.assertIsNone(self.game.winner)
+
+    def test_winner(self):
+
+        class Event(object):
+            pass
+
+        slot_list = ['top_right', 'right_upper', 'center', 'right_lower', 'bottom_left']
+
+        event = Event()
+        for idx in range(3):
+            for color in [BLUE, GREEN]:
+                event.pos = self.game.HOME[color][idx]
+                self.game.on_mousebutton_down(event)
+                try:
+                    event.pos = self.game.stars[slot_list.pop()]
+                except IndexError:
+                    break
+                self.game.on_mousebutton_down(event)
+                self.assertEqual(self.game.players[color].tokens[idx].played, True)
+        self.assertIsNotNone(self.game.winner)
 
 if __name__ == '__main__':
     unittest.main()
