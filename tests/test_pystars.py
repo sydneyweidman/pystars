@@ -7,6 +7,14 @@ from pystars.game import Game, Player, Token, Slot
 BLUE = pygame.color.THECOLORS['blue']
 GREEN = pygame.color.THECOLORS['green']
 
+
+class Event(object):
+    "Dummy class for creating mock GUI events"
+
+    def __init__(self, pos=None):
+        self.pos = pos
+
+
 class TestToken(unittest.TestCase):
 
     def setUp(self):
@@ -60,16 +68,26 @@ class TestGame(unittest.TestCase):
     def test_game_running(self):
         assert self.game.running
 
-    def test_no_winner(self):
+    def test_initial_winner_state(self):
+        self.assertIsNone(self.game.winner)
+
+    def test_non_winner(self):
+        slot_list = ['top_left', 'right_upper', 'center', 'right_lower', 'bottom_left']
+        event = Event()
+        for idx in range(3):
+            for color in [BLUE, GREEN]:
+                event.pos = self.game.HOME[color][idx]
+                self.game.on_mousebutton_down(event)
+                try:
+                    event.pos = self.game.stars[slot_list.pop()]
+                except IndexError:
+                    break
+                self.game.on_mousebutton_down(event)
+                self.assertEqual(self.game.players[color].tokens[idx].played, True)
         self.assertIsNone(self.game.winner)
 
     def test_winner(self):
-
-        class Event(object):
-            pass
-
         slot_list = ['top_right', 'right_upper', 'center', 'right_lower', 'bottom_left']
-
         event = Event()
         for idx in range(3):
             for color in [BLUE, GREEN]:
