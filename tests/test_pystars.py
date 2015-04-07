@@ -11,8 +11,9 @@ GREEN = pygame.color.THECOLORS['green']
 class Event(object):
     "Dummy class for creating mock GUI events"
 
-    def __init__(self, pos=None):
+    def __init__(self, pos=None, eventtype=pygame.locals.MOUSEBUTTONDOWN):
         self.pos = pos
+        self.type = eventtype
 
 
 class TestToken(unittest.TestCase):
