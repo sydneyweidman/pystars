@@ -29,6 +29,9 @@ COLOR_NAME = {BLUE: 'blue', GREEN: 'green'}
 parser = optparse.OptionParser()
 
 
+class InvalidMove(Exception):
+    pass
+
 class Player(object):
     def __init__(self, color, name=None):
         if color not in COLORS:
@@ -44,7 +47,9 @@ class Player(object):
         self.tokens.append(token)
 
     def move(self, token, to_slot):
-        token.pos = to_slot.pos
+        if token.color != self.color or token not in self.tokens:
+            raise InvalidMove("That token is not yours")
+        token.move(to_slot)
 
 
 class Token(pygame.Rect):
