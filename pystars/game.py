@@ -197,6 +197,9 @@ class Game(object):
 
     def on_mousebutton_down(self, event):
         """Handle mouse events"""
+        if self.winner:
+            self.msg("Press r to restart or q to quit.")
+            return
         print "Click: %s" % (event.pos,)
         # First deal with selecting a token
         for i in self.player.tokens:
