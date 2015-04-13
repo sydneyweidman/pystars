@@ -28,7 +28,7 @@ COLOR_NAME = {BLUE: 'blue', GREEN: 'green'}
 
 parser = optparse.OptionParser()
 
-stars = dict(left_upper =      (20, 217),
+stars = dict(left_upper=(20, 217),
              top_right=(483, 22),
              right_upper=(666, 217),
              right_lower=(666, 493),
@@ -48,19 +48,20 @@ bottom_left
 left_lower
 left_upper""".splitlines()
 
-adjacents = { 'center': ring_names,
-              'top_left': ['top_right','left_upper','center'],
-              'top_right':['top_left', 'right_upper', 'center'],
-              'right_upper':['top_right', 'right_lower', 'center'],
-              'right_lower':['right_upper', 'bottom_right', 'center'],
-              'bottom_right':['right_lower', 'bottom_left', 'center'],
-              'bottom_left':['bottom_right', 'left_lower', 'center'],
-              'left_lower':['bottom_left', 'left_upper', 'center'],
-              'left_upper':['left_lower', 'top_left', 'center'],}
+adjacents = {'center': ring_names,
+             'top_left': ['top_right', 'left_upper', 'center'],
+             'top_right': ['top_left', 'right_upper', 'center'],
+             'right_upper': ['top_right', 'right_lower', 'center'],
+             'right_lower': ['right_upper', 'bottom_right', 'center'],
+             'bottom_right': ['right_lower', 'bottom_left', 'center'],
+             'bottom_left': ['bottom_right', 'left_lower', 'center'],
+             'left_lower': ['bottom_left', 'left_upper', 'center'],
+             'left_upper': ['left_lower', 'top_left', 'center'], }
 
 
 class InvalidMove(Exception):
     pass
+
 
 class Player(object):
     def __init__(self, color, name=None, is_cpu=False):
@@ -97,6 +98,7 @@ class Player(object):
         token.move(to_slot)
 
 
+# noinspection PyAttributeOutsideInit
 class Token(pygame.Rect):
     radius = int(TOKEN_SIZE / 2.0)
     instances = []
@@ -146,7 +148,7 @@ class Slot(pygame.Rect):
 
     by_name = {}
 
-    def __init__(self, rect, token=None, name=None, adjacents=None):
+    def __init__(self, rect, token=None, name=None):
         pygame.Rect.__init__(self, rect)
         self.token = token
         if not name:
@@ -303,6 +305,9 @@ def main(*args, **kwargs):
     - `*args`:
     - `**kwargs`:
     """
+    print "Args: %s" % (args,)
+    for k, v in kwargs.iteritems():
+        print "%s: %s"  % (k,v)
     pygame.init()
     game = Game()
     while game.running:
