@@ -2,7 +2,7 @@ __author__ = 'sweidman'
 
 import unittest
 import pygame
-from pystars.game import Game, Player, Token, Slot, InvalidMove
+from pystars.game import Game, Player, Token, Slot, InvalidMove, stars, adjacents
 
 BLUE = pygame.color.THECOLORS['blue']
 GREEN = pygame.color.THECOLORS['green']
@@ -43,6 +43,13 @@ class TestPlayer(unittest.TestCase):
         self.players[BLUE] = Player(color=BLUE)
         self.players[GREEN] = Player(color=GREEN)
 
+    def test_player_is_cpu_default(self):
+        self.assertFalse(self.players[BLUE].is_cpu)
+
+    def test_player_is_cpu_set(self):
+        self.players[GREEN].is_cpu = True
+        self.assertTrue(self.players[GREEN].is_cpu)
+
     def test_player_count(self):
         self.assertEqual(len(self.game.players), 2)
 
@@ -75,10 +82,16 @@ class TestGame(unittest.TestCase):
                 event.pos = self.game.HOME[color][idx]
                 self.game.on_mousebutton_down(event)
                 try:
-                    event.pos = self.game.stars[slot_list.pop()]
+                    event.pos = stars[slot_list.pop()]
                 except IndexError:
                     break
                 self.game.on_mousebutton_down(event)
+
+    def test_adjacent_only(self):
+        slot_list = adjacents.keys()[:6]
+        self.execute_moves(slot_list)
+        self.assertRaises(InvalidMove, self.game.player.move, Slot.by_name['right_upper'].token,
+                                                        Slot.by_name['left_lower'])
 
     def test_non_winner(self):
         slot_list = ['top_left', 'right_upper', 'center', 'right_lower', 'bottom_left']

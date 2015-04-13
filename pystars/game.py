@@ -28,25 +28,70 @@ COLOR_NAME = {BLUE: 'blue', GREEN: 'green'}
 
 parser = optparse.OptionParser()
 
+stars = dict(left_upper =      (20, 217),
+             top_right=(483, 22),
+             right_upper=(666, 217),
+             right_lower=(666, 493),
+             bottom_right=(474, 684),
+             bottom_left=(205, 681),
+             left_lower=(18, 491),
+             top_left=(213, 19),
+             center=(345, 355),
+             )
+
+ring_names = """top_left
+top_right
+right_upper
+right_lower
+bottom_right
+bottom_left
+left_lower
+left_upper""".splitlines()
+
+adjacents = { 'center': ring_names,
+              'top_left': ['top_right','left_upper','center'],
+              'top_right':['top_left', 'right_upper', 'center'],
+              'right_upper':['top_right', 'right_lower', 'center'],
+              'right_lower':['right_upper', 'bottom_right', 'center'],
+              'bottom_right':['right_lower', 'bottom_left', 'center'],
+              'bottom_left':['bottom_right', 'left_lower', 'center'],
+              'left_lower':['bottom_left', 'left_upper', 'center'],
+              'left_upper':['left_lower', 'top_left', 'center'],}
+
 
 class InvalidMove(Exception):
     pass
 
 class Player(object):
-    def __init__(self, color, name=None):
+    def __init__(self, color, name=None, is_cpu=False):
         if color not in COLORS:
             raise ValueError("Invalid value for color. Use BLUE or GREEN")
         self.color = color
         self.tokens = []
+        self._is_cpu = is_cpu
         if name:
             self.name = name
         else:
             self.name = COLOR_NAME[self.color]
 
+    @property
+    def is_cpu(self):
+        return self._is_cpu
+
+    @is_cpu.setter
+    def is_cpu(self, value):
+        if value:
+            self._is_cpu = True
+        else:
+            self._is_cpu = False
+
     def add_token(self, token):
         self.tokens.append(token)
 
     def move(self, token, to_slot):
+        if self.is_cpu:
+            # TODO: Implement CPU Move
+            pass
         if token.color != self.color or token not in self.tokens:
             raise InvalidMove("That token is not yours")
         token.move(to_slot)
@@ -98,29 +143,28 @@ class Token(pygame.Rect):
 
 
 class Slot(pygame.Rect):
-    def __init__(self, rect, token=None, name=None):
+
+    by_name = {}
+
+    def __init__(self, rect, token=None, name=None, adjacents=None):
         pygame.Rect.__init__(self, rect)
         self.token = token
         if not name:
             name = "{0:s}".format((self.left, self.top), )
         self.name = name
+        Slot.by_name[self.name] = self
 
     def on_click(self, token):
+        print self
+        print self.left, self.top
         token.move(self)
         self.token = token
 
+    def __str__(self):
+        return self.name
+
 
 class Game(object):
-    stars = dict(center=(345, 355),
-                 top_left=(20, 217),
-                 top_right=(213, 19),
-                 right_upper=(483, 22),
-                 right_lower=(666, 217),
-                 bottom_right=(666, 493),
-                 bottom_left=(474, 684),
-                 left_lower=(205, 681),
-                 left_upper=(18, 491),
-                 )
 
     winners = [(stars['top_left'], stars['center'], stars['bottom_right']),
                (stars['top_right'], stars['center'], stars['bottom_left']),
@@ -154,6 +198,7 @@ class Game(object):
             for t in self.players[p].tokens:
                 self.tokens.append(t)
         self.active_token = None
+        self.active_slot = None
         self.slots = []
         self._setup_slots()
 
@@ -164,10 +209,13 @@ class Game(object):
                 self.players[color].add_token(tkn)
 
     def _setup_slots(self):
-        for s in Game.stars.itervalues():
+        for k, s in stars.iteritems():
             rect = pygame.Rect((s[0], s[1]), (TOKEN_SIZE, TOKEN_SIZE))
-            slot = Slot(rect)
+            slot = Slot(rect, name=k)
             self.slots.append(slot)
+
+    def all_tokens_played(self):
+        return all([t.played for t in self.tokens])
 
     def check_winner(self):
         for color in self.players:
@@ -202,22 +250,34 @@ class Game(object):
             return
         print "Click: %s" % (event.pos,)
         # First deal with selecting a token
-        for i in self.player.tokens:
-            if i.collidepoint(event.pos):
-                i.on_click(event)
-                self.active_token = i
-                self.msg("Token selected. Click on a star to place your token.")
+        for tkn in self.player.tokens:
+            if tkn.collidepoint(event.pos):
+                tkn.on_click(event)
+                self.active_token = tkn
+                if self.all_tokens_played():
+                    slot = [i for i in self.slots if i.collidepoint(event.pos)][0]
+                    self.active_slot = slot
+                    self.msg("Token at %s selected. Click on a star..." % (slot.name,))
+                else:
+                    self.msg("Token selected. Click on a star...")
                 return
         if not self.active_token:
             self.msg("Please select a token first")
             return
         # a token has already been selected, so the mouse click
         # is to choose a destination slot
-        for i in self.slots:
-            if i.collidepoint(event.pos):
+        for dst in self.slots:
+            if dst.collidepoint(event.pos):
                 # TODO: Validation for move
-                slot = i
-                slot.on_click(self.active_token)
+                try:
+                    if self.all_tokens_played():
+                        if dst.name not in adjacents[self.active_slot.name]:
+                            raise InvalidMove
+                except InvalidMove:
+                    self.msg("Move from %s to %s is invalid" % (self.active_slot.name, dst.name,))
+                    return
+                dst.on_click(self.active_token)
+                self.active_slot = dst
                 self.active_token.played = True
                 self.active_token.selected = False
                 self.active_token = None
