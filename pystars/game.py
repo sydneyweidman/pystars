@@ -268,7 +268,6 @@ class Game(object):
         # is to choose a destination slot
         for dst in self.slots:
             if dst.collidepoint(event.pos):
-                # TODO: Validation for move
                 try:
                     if self.all_tokens_played():
                         if dst.name not in adjacents[self.active_slot.name]:
