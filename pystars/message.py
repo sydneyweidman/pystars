@@ -6,11 +6,12 @@ FONT_SIZE = 32
 BLACK = pygame.color.THECOLORS['black']
 WHITE = pygame.color.THECOLORS['white']
 
+
 class MessageArea(pygame.Surface):
 
-    def __init__(self, top, left, height, width, initial_text=None, margin=10,
-                 duration=5, fg_color=BLACK, bg_color=WHITE, font_size=FONT_SIZE,
-                 font=None):
+    def __init__(self, top, left, height, width, initial_text=None,
+                 margin=10, duration=5, fg_color=BLACK,
+                 bg_color=WHITE, font_size=FONT_SIZE, font=None):
         self.height = height
         self.top = top
         self.left = left

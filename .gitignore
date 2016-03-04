@@ -1,1 +1,9 @@
 *.pyc
+
+.idea/
+/pystars.egg-info/PKG-INFO
+/pystars.sublime-project
+/pystars.sublime-workspace
+/tags
+/pystars.egg-info/SOURCES.txt
+/pystars.egg-info/dependency_links.txt
